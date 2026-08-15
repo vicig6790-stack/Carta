@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Una carta especial para ti 💌✨</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root { --bg-dark: #0d0107; --bg-wine: #260516; --rose-dark: #4d0a2d; --rose-bright: #ff2a85; --rose-light: #ffd0e3; --gold: #ffe082; --card-bg: rgba(38, 7, 24, 0.94); }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { min-height: 100vh; min-height: 100dvh; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at center, var(--bg-wine) 0%, var(--bg-dark) 100%); font-family: 'Montserrat', sans-serif; color: #fff; overflow-x: hidden; overflow-y: auto; padding: 20px 10px; }
+    #sparkles-canvas { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1; }
+    .main-container { position: relative; z-index: 10; width: 100%; max-width: 520px; display: flex; justify-content: center; align-items: center; min-height: 520px; }
+    #envelope-view { display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: transform 0.4s ease, opacity 0.5s ease; width: 100%; max-width: 340px; }
+    #envelope-view.hidden { display: none; }
+    .envelope { position: relative; width: 300px; height: 200px; background: linear-gradient(135deg, #5e0d38, #3b0521); border-radius: 12px; box-shadow: 0 15px 35px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 42, 133, 0.4); border: 1.5px solid rgba(255, 42, 133, 0.5); display: flex; justify-content: center; align-items: center; }
+    .flap-left { position: absolute; top: 0; left: 0; width: 0; height: 0; border-top: 100px solid transparent; border-bottom: 100px solid transparent; border-left: 150px solid #4a092b; border-radius: 10px 0 0 10px; pointer-events: none; }
+    .flap-right { position: absolute; top: 0; right: 0; width: 0; height: 0; border-top: 100px solid transparent; border-bottom: 100px solid transparent; border-right: 150px solid #410725; border-radius: 0 10px 10px 0; pointer-events: none; }
+    .flap-bottom { position: absolute; bottom: 0; left: 0; width: 0; height: 0; border-left: 150px solid transparent; border-right: 150px solid transparent; border-bottom: 110px solid #540c33; border-radius: 0 0 10px 10px; pointer-events: none; }
+    .heart-seal { position: relative; z-index: 5; width: 65px; height: 65px; background: radial-gradient(circle at 30% 30%, #ff4b98, #a80b54); border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; color: #fff; box-shadow: 0 0 25px rgba(255, 42, 133, 0.9), inset 0 2px 5px rgba(255, 255, 255, 0.5); border: 2px solid var(--gold); animation: pulse-heart 1.8s infinite ease-in-out; pointer-events: auto; }
+    @keyframes pulse-heart { 0%, 100% { transform: scale(1); box-shadow: 0 0 20px rgba(255, 42, 133, 0.7); } 50% { transform: scale(1.12); box-shadow: 0 0 35px rgba(255, 42, 133, 1), 0 0 20px var(--gold); } }
+    .open-instructions { margin-top: 25px; font-size: 0.95rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--rose-light); text-align: center; font-weight: 500; animation: bounce 2s infinite ease-in-out; }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); opacity: 0.8; } 50% { transform: translateY(-6px); opacity: 1; color: var(--rose-bright); } }
+    #letter-view { display: none; width: 100%; background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 26px; border: 1.5px solid rgba(255, 42, 133, 0.5); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(255, 42, 133, 0.3); padding: 35px 25px 25px 25px; flex-direction: column; justify-content: space-between; animation: appearCard 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) forwards; max-height: 90vh; overflow-y: auto; }
+    #letter-view.active { display: flex; }
+    @keyframes appearCard { 0% { opacity: 0; transform: scale(0.8) translateY(30px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+    .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255, 42, 133, 0.3); padding-bottom: 12px; margin-bottom: 18px; }
+    .page-indicator { font-size: 0.8rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--rose-bright); }
+    .btn-close-letter { background: rgba(255, 42, 133, 0.15); border: 1px solid rgba(255, 42, 133, 0.4); color: var(--rose-light); padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.3s; }
+    .btn-close-letter:hover { background: var(--rose-bright); color: #fff; }
+    .pages-container { position: relative; min-height: auto; display: flex; flex-direction: column; align-items: center; }
+    .letter-page { display: none; width: 100%; animation: fadeInPage 0.45s ease forwards; }
+    .letter-page.show { display: block; }
+    @keyframes fadeInPage { 0% { opacity: 0; transform: translateY(12px); } 100% { opacity: 1; transform: translateY(0); } }
+    .page-title { font-family: 'Dancing Script', cursive; font-size: 2.3rem; color: #fff; text-align: center; margin-bottom: 16px; text-shadow: 0 0 15px rgba(255, 42, 133, 0.8); }
+    .page-text { font-size: 0.95rem; line-height: 1.7; color: #f7e8ef; text-align: center; font-weight: 300; }
+    .page-text p { margin-bottom: 14px; }
+    .page-text p:last-child { margin-bottom: 0; }
+    .highlight { font-weight: 600; color: #fff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.6); }
+    .final-heart { font-family: 'Dancing Script', cursive; font-size: 2.1rem; color: var(--rose-bright); display: block; margin-top: 15px; text-shadow: 0 0 18px rgba(255, 42, 133, 0.8); }
+    .card-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(255, 42, 133, 0.25); padding-top: 18px; margin-top: 18px; }
+    .nav-btn { background: rgba(255, 42, 133, 0.2); border: 1px solid rgba(255, 42, 133, 0.5); color: #fff; padding: 9px 20px; border-radius: 30px; font-size: 0.85rem; font-family: inherit; font-weight: 500; cursor: pointer; transition: all 0.3s; }
+    .nav-btn:hover:not(:disabled) { background: var(--rose-bright); box-shadow: 0 0 20px rgba(255, 42, 133, 0.8); }
+    .nav-btn:disabled { opacity: 0; pointer-events: none; }
+    .dots-nav { display: flex; gap: 8px; }
+    .dot-item { width: 10px; height: 10px; background: rgba(255, 255, 255, 0.25); border-radius: 50%; cursor: pointer; transition: all 0.3s; }
+    .dot-item.active { background: var(--rose-bright); transform: scale(1.3); box-shadow: 0 0 10px var(--rose-bright); }
+    .tap-sparkle { position: fixed; width: 6px; height: 6px; background: var(--gold); border-radius: 50%; pointer-events: none; box-shadow: 0 0 10px #fff, 0 0 20px var(--rose-bright); animation: explode-sparkle 0.75s forwards ease-out; z-index: 999; }
+    @keyframes explode-sparkle { 0% { opacity: 1; transform: translate(0, 0) scale(1.2); } 100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0); } }
+  </style>
+</head>
+<body>
+  <canvas id="sparkles-canvas"></canvas>
+  <div class="main-container">
+    <div id="envelope-view">
+      <div class="envelope">
+        <div class="flap-left"></div>
+        <div class="flap-right"></div>
+        <div class="flap-bottom"></div>
+        <div class="heart-seal">❤️</div>
+      </div>
+      <div class="open-instructions">✨ Toca aquí para abrir tu carta ✨</div>
+    </div>
+    <div id="letter-view">
+      <div class="card-header">
+        <span class="page-indicator">Carta especial</span>
+        <button class="btn-close-letter" id="btn-close">Guardar sobre ✉️</button>
+      </div>
+      <div class="pages-container">
+        <div class="letter-page show" id="p1">
+          <h2 class="page-title">Hola, corazón ✨</h2>
+          <div class="page-text">
+            <p>Solo quería recordarte lo muchísimo que te amo y lo feliz que me hace compartir cada momento a tu lado.</p>
+            <p>Me encanta todo lo que hacemos juntos, y aunque sé que a veces cometo errores o me equivoco, siempre tengo la intención de mejorar para darte el trato y el amor que realmente te mereces.</p>
+            <p class="highlight">Eres mi niña, mi bebé, mi reina y mi todo.</p>
+            <p>No hay un solo día en que no estés en mi mente: al despertar por la mañana eres mi primer pensamiento, y al terminar el día, lo más lindo y reconfortante es saber que estás ahí.</p>
+          </div>
+        </div>
+        <div class="letter-page" id="p2">
+          <h2 class="page-title">Lo que me enamora de ti 💕</h2>
+          <div class="page-text">
+            <p class="highlight">Amo todo de ti.</p>
+            <p>Me fascina tu forma de ser: tan sincera, amorosa, e incluso cuando te enojas o haces tus berrinches, hasta eso me encanta. No me canso de verte ni de admirar cada detalle que te hace única; tu forma de querer, de cuidarme y de seguirme la corriente en todas mis ocurrencias.</p>
+            <p>Con solo hablar contigo, escuchar tu voz y que me hables bonito, me cambias el día por completo.</p>
+            <p>Me siento el hombre más afortunado del mundo por tenerte, por cómo me das ánimos cuando más lo necesito y por la forma tan bonita en que me entiendes.</p>
+            <p>Eres una mujer increíble en todos los sentidos, y prometo estar siempre a tu lado para apoyarte, levantarte si caes y cuidarte una y otra vez.</p>
+          </div>
+        </div>
+        <div class="letter-page" id="p3">
+          <h2 class="page-title">Nuestro futuro y mi promesa 🌟</h2>
+          <div class="page-body page-text">
+            <p class="highlight">Nuestra historia juntos</p>
+            <p>Quiero que construyamos una historia hermosa donde siempre te sientas amada, valorada y libre de ser tú misma.</p>
+            <p>No me imagino mi vida sin ti, por eso me esfuerzo y me esforzaré cada día por demostrarte lo mucho que vales para mí.</p>
+            <p class="highlight">Si existieran más vidas después de esta, tengo claro que en cada una de ellas te volvería a elegir a ti, sin dudarlo ni un segundo.</p>
+            <span class="final-heart">Te amo con todo mi corazón.</span>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <button class="nav-btn" id="btn-prev" disabled>← Atrás</button>
+        <div class="dots-nav">
+          <div class="dot-item active" data-index="0"></div>
+          <div class="dot-item" data-index="1"></div>
+          <div class="dot-item" data-index="2"></div>
+        </div>
+        <button class="nav-btn" id="btn-next">Siguiente →</button>
+      </div>
+    </div>
+  </div>
+  <script>
+    const envelopeView = document.getElementById('envelope-view');
+    const letterView = document.getElementById('letter-view');
+    const btnClose = document.getElementById('btn-close');
+    const btnNext = document.getElementById('btn-next');
+    const btnPrev = document.getElementById('btn-prev');
+    const pages = [document.getElementById('p1'), document.getElementById('p2'), document.getElementById('p3')];
+    const dots = document.querySelectorAll('.dot-item');
+    let currentIndex = 0;
+    function openLetter() { envelopeView.classList.add('hidden'); letterView.classList.add('active'); goToPage(0); spawnBurst(window.innerWidth / 2, window.innerHeight / 2, 25); }
+    function closeLetter() { letterView.classList.remove('active'); envelopeView.classList.remove('hidden'); }
+    envelopeView.addEventListener('click', openLetter);
+    envelopeView.addEventListener('touchend', (e) => { e.preventDefault(); openLetter(); });
+    btnClose.addEventListener('click', closeLetter);
+    function goToPage(idx) {
+      currentIndex = idx;
+      pages.forEach((page, i) => { page.classList.toggle('show', i === currentIndex); dots[i].classList.toggle('active', i === currentIndex); });
+      btnPrev.disabled = currentIndex === 0;
+      btnNext.disabled = currentIndex === 2;
+      spawnBurst(window.innerWidth / 2, window.innerHeight / 2, 10);
+    }
+    btnNext.addEventListener('click', () => { if (currentIndex < 2) goToPage(currentIndex + 1); });
+    btnPrev.addEventListener('click', () => { if (currentIndex > 0) goToPage(currentIndex - 1); });
+    dots.forEach((dot, idx) => { dot.addEventListener('click', () => goToPage(idx)); });
+    const canvas = document.getElementById('sparkles-canvas');
+    const ctx = canvas.getContext('2d');
+    let sparkles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resize);
+    resize();
+    class Sparkle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2.2 + 0.5;
+        this.vy = -(Math.random() * 0.4 + 0.1);
+        this.alpha = Math.random();
+        this.alphaChange = Math.random() * 0.02 + 0.005;
+        this.color = Math.random() > 0.4 ? '#ff2a85' : (Math.random() > 0.5 ? '#ffe082' : '#ffffff');
+      }
+      update() {
+        this.y += this.vy;
+        this.alpha += this.alphaChange;
+        if (this.alpha > 1 || this.alpha < 0) this.alphaChange = -this.alphaChange;
+        if (this.y < 0) { this.reset(); this.y = canvas.height; }
+      }
+      draw() {
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, this.alpha);
+        ctx.fillStyle = this.color;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      }
+    }
+    for (let i = 0; i < 70; i++) sparkles.push(new Sparkle());
+    function animateSparkles() { ctx.clearRect(0, 0, canvas.width, canvas.height); sparkles.forEach(s => { s.update(); s.draw(); }); requestAnimationFrame(animateSparkles); }
+    animateSparkles();
+    window.addEventListener('click', (e) => { spawnBurst(e.clientX, e.clientY, 8); });
+    function spawnBurst(x, y, count) {
+      for (let i = 0; i < count; i++) {
+        const div = document.createElement('div');
+        div.classList.add('tap-sparkle');
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        const angle = Math.random() * Math.PI * 2;
+        const dist = Math.random() * 60 + 20;
+        div.style.setProperty('--dx', `${Math.cos(angle) * dist}px`);
+        div.style.setProperty('--dy', `${Math.sin(angle) * dist}px`);
+        document.body.appendChild(div);
+        setTimeout(() => div.remove(), 750);
+      }
+    }
+  </script>
+</body>
+</html>
