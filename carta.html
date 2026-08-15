@@ -26,11 +26,12 @@
     #letter-view { display: none; width: 100%; background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: 26px; border: 1.5px solid rgba(255, 42, 133, 0.5); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85), 0 0 35px rgba(255, 42, 133, 0.3); padding: 35px 25px 25px 25px; flex-direction: column; justify-content: space-between; animation: appearCard 0.6s cubic-bezier(0.34, 1.3, 0.64, 1) forwards; max-height: 90vh; overflow-y: auto; }
     #letter-view.active { display: flex; }
     @keyframes appearCard { 0% { opacity: 0; transform: scale(0.8) translateY(30px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
-    .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255, 42, 133, 0.3); padding-bottom: 12px; margin-bottom: 18px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed rgba(255, 42, 133, 0.3); padding-bottom: 12px; margin-bottom: 18px; flex-wrap: wrap; gap: 8px; }
     .page-indicator { font-size: 0.8rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--rose-bright); }
+    .header-controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .btn-close-letter { background: rgba(255, 42, 133, 0.15); border: 1px solid rgba(255, 42, 133, 0.4); color: var(--rose-light); padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.3s; }
     .btn-close-letter:hover { background: var(--rose-bright); color: #fff; }
-    .music-control { background: rgba(255, 42, 133, 0.2); border: 1px solid rgba(255, 42, 133, 0.4); color: var(--rose-light); padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+    .music-control { background: rgba(255, 42, 133, 0.2); border: 1px solid rgba(255, 42, 133, 0.4); color: var(--rose-light); padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.3s; display: flex; align-items: center; gap: 6px; white-space: nowrap; }
     .music-control:hover { background: var(--rose-bright); color: #fff; }
     .pages-container { position: relative; min-height: auto; display: flex; flex-direction: column; align-items: center; }
     .letter-page { display: none; width: 100%; animation: fadeInPage 0.45s ease forwards; }
@@ -55,8 +56,8 @@
 </head>
 <body>
   <canvas id="sparkles-canvas"></canvas>
-  <audio id="background-music" loop>
-    <source src="https://www.youtube.com/embed/dQw4w9WgXcQ" type="audio/mpeg">
+  <audio id="background-music" loop preload="auto">
+    <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
   </audio>
   <div class="main-container">
     <div id="envelope-view">
@@ -71,7 +72,7 @@
     <div id="letter-view">
       <div class="card-header">
         <span class="page-indicator">Carta especial</span>
-        <div style="display: flex; gap: 8px;">
+        <div class="header-controls">
           <button class="music-control" id="btn-music" title="Reproducir música">🎵 Música</button>
           <button class="btn-close-letter" id="btn-close">Guardar sobre ✉️</button>
         </div>
@@ -131,9 +132,6 @@
     let currentIndex = 0;
     let isPlaying = false;
 
-    // Cargar la canción "Harvey" de Her's desde una fuente de streaming
-    backgroundMusic.src = 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_d69fac1593.mp3?filename=romantic-piano-music-11096.mp3';
-    
     function openLetter() { 
       envelopeView.classList.add('hidden'); 
       letterView.classList.add('active'); 
@@ -141,10 +139,15 @@
       spawnBurst(window.innerWidth / 2, window.innerHeight / 2, 25);
       // Auto-play música cuando se abre la carta
       setTimeout(() => {
-        backgroundMusic.play().catch(e => console.log('No se pudo reproducir automáticamente'));
-        isPlaying = true;
-        updateMusicButton();
-      }, 500);
+        backgroundMusic.play().then(() => {
+          isPlaying = true;
+          updateMusicButton();
+        }).catch(e => {
+          console.log('Auto-play bloqueado, usuario debe hacer click');
+          isPlaying = false;
+          updateMusicButton();
+        });
+      }, 800);
     }
     
     function closeLetter() { 
@@ -156,7 +159,7 @@
     }
 
     function updateMusicButton() {
-      btnMusic.textContent = isPlaying ? '🎵 Pausar' : '🎵 Música';
+      btnMusic.textContent = isPlaying ? '⏸️ Pausar' : '▶️ Música';
     }
 
     function toggleMusic() {
@@ -164,8 +167,12 @@
         backgroundMusic.pause();
         isPlaying = false;
       } else {
-        backgroundMusic.play().catch(e => console.log('No se pudo reproducir'));
-        isPlaying = true;
+        backgroundMusic.play().then(() => {
+          isPlaying = true;
+        }).catch(e => {
+          console.log('Error al reproducir:', e);
+          isPlaying = false;
+        });
       }
       updateMusicButton();
     }
