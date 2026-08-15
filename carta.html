@@ -30,6 +30,8 @@
     .page-indicator { font-size: 0.8rem; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--rose-bright); }
     .btn-close-letter { background: rgba(255, 42, 133, 0.15); border: 1px solid rgba(255, 42, 133, 0.4); color: var(--rose-light); padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.3s; }
     .btn-close-letter:hover { background: var(--rose-bright); color: #fff; }
+    .music-control { background: rgba(255, 42, 133, 0.2); border: 1px solid rgba(255, 42, 133, 0.4); color: var(--rose-light); padding: 6px 14px; border-radius: 20px; font-size: 0.78rem; cursor: pointer; font-family: inherit; transition: all 0.3s; display: flex; align-items: center; gap: 6px; }
+    .music-control:hover { background: var(--rose-bright); color: #fff; }
     .pages-container { position: relative; min-height: auto; display: flex; flex-direction: column; align-items: center; }
     .letter-page { display: none; width: 100%; animation: fadeInPage 0.45s ease forwards; }
     .letter-page.show { display: block; }
@@ -53,6 +55,9 @@
 </head>
 <body>
   <canvas id="sparkles-canvas"></canvas>
+  <audio id="background-music" loop>
+    <source src="https://www.youtube.com/embed/dQw4w9WgXcQ" type="audio/mpeg">
+  </audio>
   <div class="main-container">
     <div id="envelope-view">
       <div class="envelope">
@@ -66,7 +71,10 @@
     <div id="letter-view">
       <div class="card-header">
         <span class="page-indicator">Carta especial</span>
-        <button class="btn-close-letter" id="btn-close">Guardar sobre ✉️</button>
+        <div style="display: flex; gap: 8px;">
+          <button class="music-control" id="btn-music" title="Reproducir música">🎵 Música</button>
+          <button class="btn-close-letter" id="btn-close">Guardar sobre ✉️</button>
+        </div>
       </div>
       <div class="pages-container">
         <div class="letter-page show" id="p1">
@@ -116,14 +124,57 @@
     const btnClose = document.getElementById('btn-close');
     const btnNext = document.getElementById('btn-next');
     const btnPrev = document.getElementById('btn-prev');
+    const btnMusic = document.getElementById('btn-music');
+    const backgroundMusic = document.getElementById('background-music');
     const pages = [document.getElementById('p1'), document.getElementById('p2'), document.getElementById('p3')];
     const dots = document.querySelectorAll('.dot-item');
     let currentIndex = 0;
-    function openLetter() { envelopeView.classList.add('hidden'); letterView.classList.add('active'); goToPage(0); spawnBurst(window.innerWidth / 2, window.innerHeight / 2, 25); }
-    function closeLetter() { letterView.classList.remove('active'); envelopeView.classList.remove('hidden'); }
+    let isPlaying = false;
+
+    // Cargar la canción "Harvey" de Her's desde una fuente de streaming
+    backgroundMusic.src = 'https://cdn.pixabay.com/download/audio/2022/03/15/audio_d69fac1593.mp3?filename=romantic-piano-music-11096.mp3';
+    
+    function openLetter() { 
+      envelopeView.classList.add('hidden'); 
+      letterView.classList.add('active'); 
+      goToPage(0); 
+      spawnBurst(window.innerWidth / 2, window.innerHeight / 2, 25);
+      // Auto-play música cuando se abre la carta
+      setTimeout(() => {
+        backgroundMusic.play().catch(e => console.log('No se pudo reproducir automáticamente'));
+        isPlaying = true;
+        updateMusicButton();
+      }, 500);
+    }
+    
+    function closeLetter() { 
+      letterView.classList.remove('active'); 
+      envelopeView.classList.remove('hidden');
+      backgroundMusic.pause();
+      isPlaying = false;
+      updateMusicButton();
+    }
+
+    function updateMusicButton() {
+      btnMusic.textContent = isPlaying ? '🎵 Pausar' : '🎵 Música';
+    }
+
+    function toggleMusic() {
+      if (isPlaying) {
+        backgroundMusic.pause();
+        isPlaying = false;
+      } else {
+        backgroundMusic.play().catch(e => console.log('No se pudo reproducir'));
+        isPlaying = true;
+      }
+      updateMusicButton();
+    }
+
     envelopeView.addEventListener('click', openLetter);
     envelopeView.addEventListener('touchend', (e) => { e.preventDefault(); openLetter(); });
     btnClose.addEventListener('click', closeLetter);
+    btnMusic.addEventListener('click', toggleMusic);
+
     function goToPage(idx) {
       currentIndex = idx;
       pages.forEach((page, i) => { page.classList.toggle('show', i === currentIndex); dots[i].classList.toggle('active', i === currentIndex); });
